@@ -1,0 +1,38 @@
+#+TITLE:  Self-Supervised Multivariate Time Series Classification Network
+
+This is a work-in-progress conversion of the Self-Supervised Classification Network as detailed in the paper: [[https://arxiv.org/abs/2103.10994][Self-Supervised Classification Network]]
+
+The source code is a modified version of the PyTorch implementation, taken from: https://github.com/elad-amrani/self-classifier
+This is largely been simplified, to remove the distributed running support nature, and converted to work with accelerometer data.
+The internals are mostly the same but the augmentation was changed and the backbone and networks need to change.
+
+This was developed using literate programming in Emacs org-mode. To follow along, you can read: [[accelerometer.org]]
+
+** Setup
+1. Install Conda environment:
+
+#+begin_src shell
+conda env create -f ./environment.yml
+#+end_src
+
+** Evaluation
+The data is loaded from a Pandas dataframe, stored in parquet format in a file named =train.parquet=.
+The dataframe consists of a column =Timestamp= followed but the individual points for the MTVS data. e.g.:
+| Timestamp           |    x_0 |    x_1 |   x_2 |    y_0 |    y_1 |    y_2 |   z_0 |   z_1 |   z_2 |
+| 2016-06-26 09:40:25 |  0.168 |  0.172 | 0.176 | -0.859 | -0.852 | -0.867 | 0.477 | 0.488 | 0.496 |
+| 2016-06-26 09:41:25 | -0.230 | -0.062 | 0.215 | -0.949 | -0.941 | -0.836 | 0.434 | 0.441 | 0.414 |
+
+The evaluation of the model (this uses a CNN-LSTM based upon [[https://linkinghub.elsevier.com/retrieve/pii/S2214317322000415][Deep learning based classification of sheep behaviour from accelerometer data with imbalance]]) can then be performed with the following:
+
+#+begin_src shell
+python train.py --dim 115 --hidden-dim 115 --cls-size [3] --epochs 30 --batch-size 100 --save-path experiments/mtvs-test --warmup-epochs 0 --lr 0.001 --data-size 9 --summary-file epoch_results.csv data/
+#+end_src
+where:
+- =cls-size= is the number of classes to identify in the data
+- =data-size= is the number of columns in the data (without the =Timestamp= column)
+- =data/= is the path where the =train.parquet= is located.
+
+More details for the parameters can be found by running without arguments.
+
+** License
+See the [[LICENSE]] file for more details.
